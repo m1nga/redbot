@@ -1,13 +1,15 @@
 {
-  "version": "1.1.0",
-  "distribution": "browser-only export",
+  "version": "1.2.0",
+  "distribution": "RedBot clean browser edition",
   "private_data_included": false,
+  "matcher": "local wording plus curated guides; no model call",
   "assets_sha256": {
-    "index.html": "72cf80e87ae4628814dc952462bcb68a77592a415d797e39fb6d09e9c33945e5",
-    "core.js": "14ad27e3ce45a36a863b1c35571d15e6ad86632853dde2f1ce2305f69bc4c852",
-    "Shelf-Starter.html": "4d0eaf68cbfeae81fa5dd9ab640e3fa0443d2f4faa38ac4f308c5660c8c2c5b5",
-    "style.css": "aa296f3f08d679629457aaf910c4b124fd889e6a32f6a421dcdb1ebcc858d7c4",
-    "app.js": "5ef1d05b2c8564218fd44041a23e4a8158e82cfd24302eb58b5ad64bd74afd2e"
-  },
-  "browser_demo_variations": "Original sample entries, an explicit blank-download entry, and singular guide-count copy."
+    "index.html": "508e6f9609c3d5d5fd783df029ece8088a0dcbb7b15c4c70ad91de89270601d3",
+    "core.js": "0013080f5cfe31605286112a5c6154a5aec4f575891c13d3bd974749b62e11d2",
+    "example-notes.html": "c7e7a1e43b4470111dbd4045821d39d3a2ea3e039b82d47cc31aab89c4c58d7a",
+    "Shelf-Starter.html": "d856aa700b6ba203f3256270cc72d552b127f421c455ae2ca5ff4bd39ce2dea7",
+    "style.css": "3c51f3d8e1bec4fc38a336ece16680a29a9c1d2b01a7f762a74c54ba21d45070",
+    "RedBot-Starter.html": "d856aa700b6ba203f3256270cc72d552b127f421c455ae2ca5ff4bd39ce2dea7",
+    "app.js": "f1043c2454df52b76f24279b5b2cec0dd697b3f2c65422b2a2a5b7de9221571e"
+  }
 }
