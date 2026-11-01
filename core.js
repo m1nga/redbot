@@ -60,6 +60,8 @@ function goalTerms(goal){
  return [...out].slice(0,80);
 }
 function normalizeGoalState(x){x=x&&typeof x==='object'?x:{};const skips={};for(const [key,val] of Object.entries(x.skips||{}).slice(-50))if(/^[a-z0-9-]{1,80}$/.test(key)&&Array.isArray(val))skips[key]=val.filter(v=>typeof v==='string').slice(0,30).map(v=>v.slice(0,120));const p=x.plan;return {skips,plan:p&&typeof p==='object'&&typeof p.goal==='string'?{goal:clean(p.goal).slice(0,1000),choice:clean(p.choice).slice(0,120),status:p.status==='done'?'done':'ready'}:null};}
+function hasResearch(x){return !!(x.research?.decision?.trim()||x.research?.points?.some(p=>p[1]?.trim()));}
+function hasText(x){return !!(x.summary||x.readingNotes||x.description||x.transcript);}
 function chooseStart(items,guides,state,goal,choice=''){
  goal=String(goal||'').trim().slice(0,1000);const ann=state.annotations||{},gs=normalizeGoalState(state.goalState),key=hash(goal.toLowerCase()),skips=new Set(gs.skips[key]||[]);
  const live=items.filter(x=>!ann[x.id]?.trashed&&!ann[x.id]?.archived),liveBy=new Map(live.map(x=>[x.id,x]));
@@ -71,6 +73,7 @@ function chooseStart(items,guides,state,goal,choice=''){
  // Explicit choice is a response to a visible clarification, not an inferred preference.
  if(choice)matched=INTENTS.filter(i=>i.id===choice&&routes.some(g=>g.id===i.id));
  if(matched.length>1&&!choice)return {status:'clarify',question:'Which part should we tackle first?',options:matched.slice(0,3).map(i=>({label:i.label,choice:i.id}))};
+ if(skips.size&&!matched.length)return {status:'no_match',message:'The previous choice was not a fit. I do not have another reviewed route for this goal yet. Tell me what was missing, such as a different tool, level or constraint.'};
  if(!matched.length&&!choice&&(/(?:优化|改进|改善|提升).*?(?:页面|网页|设计|网站|产品)|(?:页面|网页|网站|设计|产品).*(?:更好|好一点|优化)/i.test(goal)||/^(?:设计|网页|网站|产品|健身|咖啡|视频|design|website|product|fitness|coffee|video|make my website better|improve my website)[。.!?\s]*$/i.test(goal))){
   const domain=/fitness|健身/i.test(goal)?'fitness':/coffee|咖啡/i.test(goal)?'coffee':/video|视频/i.test(goal)?'video':/product|产品/i.test(goal)?'product':'design';
   const choices={design:[['web-polish','It looks messy or unfinished'],['product-states','People do not know what to do next'],['web-reference','I need a reference to start from']],product:[['product-states','People get stuck on their first visit'],['product-continuity','There is no reason to come back'],['product-model','I need to clarify what I am building']],video:[['video-shotcraft','Plan the shots for a product video'],['video-source','Adapt an existing video project'],['video-editable','Make editable variations']],fitness:[],coffee:[]}[domain];
@@ -78,9 +81,9 @@ function chooseStart(items,guides,state,goal,choice=''){
  }
  if(matched.length){
   const intent=matched[0],guide=routes.find(g=>g.id===intent.id);
-  const sources=guide.sourceIds.map(id=>liveBy.get(id)).filter(Boolean).sort((a,b)=>Number(!!b.research)-Number(!!a.research)||Number(!!(b.description||b.transcript))-Number(!!(a.description||a.transcript)));
+  const sources=guide.sourceIds.map(id=>liveBy.get(id)).filter(Boolean).sort((a,b)=>Number(hasResearch(b))-Number(hasResearch(a))||Number(!!(b.description||b.transcript))-Number(!!(a.description||a.transcript)));
   const source=sources[0]||null;
-  return {status:source&&!source.research&&!source.summary&&!source.readingNotes&&!source.description&&!source.transcript?'needs_reading':'ready',kind:'guide',goal,key,guide,source,reason:intent.reason,next:intent.next,observations:source?.research?.points?.slice(0,2)||[],external:!source,limitations:source?.research?.limits||guide.limit};
+  return {status:source&&!hasResearch(source)&&!hasText(source)?'needs_reading':'ready',kind:'guide',goal,key,guide,source,reason:intent.reason,next:intent.next,observations:source?.research?.points?.slice(0,2)||[],external:!source,limitations:source?.research?.limits||guide.limit};
  }
  if(skips.size&&INTENTS.some(i=>i.pattern.test(goal)))return {status:'no_match',message:'That prepared route was not a fit. I do not have another reviewed route for this goal yet. Describe what was wrong or add the missing constraint.'};
  const terms=goalTerms(goal);let candidates=live.filter(x=>!skips.has(x.id)).map(x=>{
@@ -88,8 +91,8 @@ function chooseStart(items,guides,state,goal,choice=''){
   let titleHits=terms.filter(t=>title.includes(t)),bodyHits=terms.filter(t=>body.includes(t));return {source:x,rank:titleHits.length*4+bodyHits.length*2,hits:[...new Set([...titleHits,...bodyHits])].slice(0,5)};
  }).filter(x=>x.rank>0).sort((a,b)=>b.rank-a.rank||Number(!!b.source.research)-Number(!!a.source.research));
  if(!candidates.length)return {status:'no_match',message:skips.size?'There is no other supported starting point for this goal in your current library. Describe the missing requirement or add a relevant source.':'I cannot support a useful choice from your current library for this goal. Try a concrete outcome, or add a relevant save.'};
- const {source,hits}=candidates[0],readable=!!(source.research||source.summary||source.readingNotes||source.description||source.transcript);
- return {status:readable?'ready':'needs_reading',kind:'save',goal,key,source,reason:readable?'This save contains text or research matching '+hits.join(', ')+'. This is a local text match, not proof that it is the best answer.':'The title matches '+hits.join(', ')+', but I have not read the content. I cannot choose a useful part from its title alone.',next:source.research?.decision||'Read the matching passage, then decide whether it supports your next step.',observations:source.research?.points?.slice(0,2)||[],limitations:source.research?.limits||source.coverage||'Only the content already saved in your library was considered.'};
+ const {source,hits}=candidates[0],readable=hasResearch(source)||hasText(source);
+ return {status:readable?'ready':'needs_reading',kind:'save',goal,key,source,reason:readable?'This save contains text or research related to your goal. The saved passage below is the basis for this choice.':'The title is related to your goal, but I have not read the content. I cannot choose a useful part from its title alone.',next:source.research?.decision||'Read the matching passage, then decide whether it supports your next step.',observations:source.research?.points?.slice(0,2)||[],limitations:source.research?.limits||source.coverage||'Only the content already saved in your library was considered.'};
 }
 
 root.ShelfCore={chooseStart,goalTerms,normalizeGoalState,sharedLinks,normalizeGuide,TOPICS,clean,safeURL,imageURL,classify,normalize,extract,mergeItems,score,filterItems,hash};if(typeof module!=='undefined')module.exports=root.ShelfCore;

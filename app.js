@@ -63,7 +63,7 @@ function renderStart(){
  $('#goal-original')?.addEventListener('click',()=>openOriginal(r.source));
  $('#keep-plan')?.addEventListener('click',()=>{data.goalState=C.normalizeGoalState(data.goalState);data.goalState.plan={goal:goalText,choice:goalChoice||r.guide?.id||'',status:'ready'};persist();toast('Plan kept. It will be here when you return.');});
  $('#goal-helped')?.addEventListener('click',()=>{data.goalState=C.normalizeGoalState(data.goalState);data.goalState.plan={goal:goalText,choice:goalChoice||r.guide?.id||'',status:'done'};persist();toast('Marked useful for this goal. Your source and notes are kept.');});
- $('#goal-skip')?.addEventListener('click',()=>{data.goalState=C.normalizeGoalState(data.goalState);const key=C.hash(goalText.toLowerCase());data.goalState.skips[key]=[...new Set([...(data.goalState.skips[key]||[]),r.guide?.id,r.source?.id].filter(Boolean))];goalChoice='';persist();renderStart();});
+ $('#goal-skip')?.addEventListener('click',()=>{data.goalState=C.normalizeGoalState(data.goalState);const key=C.hash(goalText.toLowerCase());data.goalState.skips[key]=[...new Set([...(data.goalState.skips[key]||[]),r.guide?.id,r.source?.id].filter(Boolean))];if(data.goalState.plan?.goal===goalText)data.goalState.plan=null;goalChoice='';persist();renderStart();});
  $('#reset-goal-skips')?.addEventListener('click',()=>{data.goalState=C.normalizeGoalState(data.goalState);delete data.goalState.skips[C.hash(goalText.toLowerCase())];goalChoice='';persist();renderStart();});
  $('#different-goal')?.addEventListener('click',()=>{goalChoice='';$('#goal-input').focus();$('#goal-input').select();});
 }
