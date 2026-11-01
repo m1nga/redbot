@@ -80,7 +80,7 @@ function chooseStart(items,guides,state,goal,choice=''){
   const intent=matched[0],guide=routes.find(g=>g.id===intent.id);
   const sources=guide.sourceIds.map(id=>liveBy.get(id)).filter(Boolean).sort((a,b)=>Number(!!b.research)-Number(!!a.research)||Number(!!(b.description||b.transcript))-Number(!!(a.description||a.transcript)));
   const source=sources[0]||null;
-  return {status:source&&!source.research&&!source.summary&&!source.description&&!source.transcript?'needs_reading':'ready',kind:'guide',goal,key,guide,source,reason:intent.reason,next:intent.next,observations:source?.research?.points?.slice(0,2)||[],external:!source,limitations:source?.research?.limits||guide.limit};
+  return {status:source&&!source.research&&!source.summary&&!source.readingNotes&&!source.description&&!source.transcript?'needs_reading':'ready',kind:'guide',goal,key,guide,source,reason:intent.reason,next:intent.next,observations:source?.research?.points?.slice(0,2)||[],external:!source,limitations:source?.research?.limits||guide.limit};
  }
  if(skips.size&&INTENTS.some(i=>i.pattern.test(goal)))return {status:'no_match',message:'That prepared route was not a fit. I do not have another reviewed route for this goal yet. Describe what was wrong or add the missing constraint.'};
  const terms=goalTerms(goal);let candidates=live.filter(x=>!skips.has(x.id)).map(x=>{
@@ -88,7 +88,7 @@ function chooseStart(items,guides,state,goal,choice=''){
   let titleHits=terms.filter(t=>title.includes(t)),bodyHits=terms.filter(t=>body.includes(t));return {source:x,rank:titleHits.length*4+bodyHits.length*2,hits:[...new Set([...titleHits,...bodyHits])].slice(0,5)};
  }).filter(x=>x.rank>0).sort((a,b)=>b.rank-a.rank||Number(!!b.source.research)-Number(!!a.source.research));
  if(!candidates.length)return {status:'no_match',message:skips.size?'There is no other supported starting point for this goal in your current library. Describe the missing requirement or add a relevant source.':'I cannot support a useful choice from your current library for this goal. Try a concrete outcome, or add a relevant save.'};
- const {source,hits}=candidates[0],readable=!!(source.research||source.summary||source.description||source.transcript);
+ const {source,hits}=candidates[0],readable=!!(source.research||source.summary||source.readingNotes||source.description||source.transcript);
  return {status:readable?'ready':'needs_reading',kind:'save',goal,key,source,reason:readable?'This save contains text or research matching '+hits.join(', ')+'. This is a local text match, not proof that it is the best answer.':'The title matches '+hits.join(', ')+', but I have not read the content. I cannot choose a useful part from its title alone.',next:source.research?.decision||'Read the matching passage, then decide whether it supports your next step.',observations:source.research?.points?.slice(0,2)||[],limitations:source.research?.limits||source.coverage||'Only the content already saved in your library was considered.'};
 }
 
