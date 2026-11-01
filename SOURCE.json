@@ -3,10 +3,11 @@
   "distribution": "browser-only export",
   "private_data_included": false,
   "assets_sha256": {
-    "index.html": "77a0eb0892ddc8a6403d9bb67cf63e4ebcfc647e034ba04cff39f8be8b609dc1",
+    "index.html": "da02de43b290cfb6a69f488ff20e9f65904f418ba01335b81a1d8221437953b3",
     "core.js": "14ad27e3ce45a36a863b1c35571d15e6ad86632853dde2f1ce2305f69bc4c852",
     "Shelf-Starter.html": "4d0eaf68cbfeae81fa5dd9ab640e3fa0443d2f4faa38ac4f308c5660c8c2c5b5",
     "style.css": "aa296f3f08d679629457aaf910c4b124fd889e6a32f6a421dcdb1ebcc858d7c4",
-    "app.js": "b325fa4a2351a65f5e09c826becd47185ca10285faf8feb4468eac9cc54b5d84"
-  }
+    "app.js": "5ef1d05b2c8564218fd44041a23e4a8158e82cfd24302eb58b5ad64bd74afd2e"
+  },
+  "browser_demo_variations": "Original sample entries, an explicit blank-download entry, and singular guide-count copy."
 }
