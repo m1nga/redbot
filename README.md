@@ -1,38 +1,96 @@
-# RedBot — Know where to start
+# RedBot — Turn Saved Links into a Useful Next Action
 
-Saved something useful, but still do not know which thing to read when you need it?
+You saved something useful. When you finally need it, you still cannot decide which item to open or which part matters. RedBot connects a current goal to **one supported starting point**, the useful saved passage and a next action.
 
-Describe what you are trying to get done. RedBot chooses **one supported starting point** from your saved material, explains why, shows the observations or passage to read and gives a next action. A broad or mixed goal asks one clarification first. Unread links are labeled **Needs reading**, not disguised as reviewed recommendations.
+**[Open the mobile web beta](https://m1nga.github.io/redbot/) · [Product and privacy guide](https://m1nga.github.io/redbot/about.html) · [Five-minute user test](https://m1nga.github.io/redbot/test.html)**
 
-[Open RedBot](https://m1nga.github.io/redbot/) · [Download the blank app](https://github.com/m1nga/redbot/releases/latest/download/RedBot-Starter.html)
+## Who it's for
 
-## Try it
+People who save useful links and notes but struggle to choose what to use when a real task arises. Ordinary testers use the mobile webpage; AI-assistant users can install the companion skill.
 
-Open the public example and enter: `My page looks cheap and cluttered.`
-You will get one route, its source note, the useful part and one next step. Try `Improve my website` to see a plain-language clarification. Keep a plan to return to it; Not a fit is remembered only for that exact goal. Returning visitors can choose Load updated examples without replacing their own saves or notes.
+## Start without connecting an account
 
-## Your own library
+1. Open the beta in a current phone or desktop browser. It includes clearly labeled original examples.
+2. Try a goal, or choose **Add save** and paste a link/share text. Add a title and a useful passage or personal note so there is content to find later.
+3. Describe what you need. RedBot asks one clarification when the outcome is ambiguous, then offers one source and a concrete action.
+4. Optionally choose **Enable AI search**. The first opt-in downloads a multilingual model and runtime; inference happens on your device. No new AI API key is needed.
+5. **Keep this plan** to resume after a return. **Library & backups** exports or imports your library.
 
-Download `RedBot-Starter.html`, open it in a modern browser and choose Add save. Paste a link or app share text; titles and notes are optional. Shelf-format backups still import. Library & backups exports a portable copy. Browser, file and Mac storage are separate; back up before clearing data or changing devices. If a browser restricts local-file storage, serve this directory with `python3 -m http.server 8080 --bind 127.0.0.1` and open http://127.0.0.1:8080.
+No Xiaohongshu sign-in, cookies, terminal, server installation or RedBot account is required for the public web beta. Pasting a link stores a reference; it does **not** fetch private posts, watch a video or copy all account favorites. Title-only matches say **Needs reading**. Add text/notes, import a compatible backup, or open the original yourself.
 
-## What the chooser actually knows
+## What it does
 
-This version uses local goal wording and curated task-guide routes. It is **not model-based semantic ranking**, a comparison of every original video, or an automatic transcription service. Recommendations can use only the saved research/text and imported guides. Title-only matches request reading before a useful part can be selected. No supported match means an explicit gap, rather than an invented answer. The demo uses two original example notes, not private user material.
+| Need | Current behavior |
+|---|---|
+| Too many saves to choose from | Goal-first routing, a necessary clarification, one starting point |
+| Cannot remember the exact words | Opt-in multilingual on-device embeddings compare meaning in saved text |
+| Do not know which part to read | Existing passage or research note/time anchor, with its original source |
+| Reading never turns into doing | One next action; imported guides can supply editable implementation instructions |
+| Have to start over next visit | A saved plan, notes, read state, favorites, archive and recoverable trash |
+| Want AI-assistant help | A portable RedBot skill reads a backup or the explicitly selected local Mac library |
 
-Task guides connect goal, method, steps, source and limits. Their sources stay separate from tool installation or execution. Copying instructions does not run anything. The public browser edition does not sign into Xiaohongshu or scan an account. No AI key, account or cloud sync is needed for core use; original pages may require their own sign-in.
+The built-in text search remains available without the AI download. AI searches up to 300 current saves and methods, uses a similarity threshold, and can miss or misrank results. It retrieves text; it does not generate answers, watch original videos or verify the truth of sources. Broad goals still need clarification. Review the evidence before acting.
 
-## Other library features
+## AI and privacy
 
-Editable topics, optional collections, favorites, read state, archive and recoverable trash; saved-text search; grid/list; JSON, bookmark HTML and CSV import; JSON backup/restore; keyboard and mobile layouts. Simple title rules suggest topics and can be changed.
+The web beta uses Transformers.js 3.8.1 and `Xenova/paraphrase-multilingual-MiniLM-L12-v2` at revision `2c4055b12046f11709e9df2c122e59ffbdc2f900`. A first download is roughly 120 MB plus runtime; Wi-Fi is recommended. Hugging Face and jsDelivr receive normal asset requests such as IP/browser information. Saved text is processed locally, not sent to an inference API. An old or memory-constrained phone may fail to load the model; basic matching remains usable.
 
-## Verification and limits
+Libraries are stored in this browser's IndexedDB with a local-storage recovery fallback. There is no cloud account or automatic phone/desktop sync. Clearing browser storage can remove your library: export a backup first. Model assets and the app shell may be cached separately. Service-worker offline behavior and installation vary by browser. The standalone HTML uses basic matching; use the HTTPS beta for worker-based AI.
 
-16 core tests passed, including goal clarification, source anchors, unread-content boundaries, unsupported requests, discarded sources and scoped feedback. Builder-aware live Chrome checks cover goal → one route → useful source, saving a plan, clarification, no-match and mobile behavior. This is not an unaided nontechnical human trial. The single-file artifact receives static checks; browser file-page behavior remains user-browser dependent.
+An assistant running the skill reads the file or local library you authorize. Its provider and privacy settings are separate from the browser beta. Do not send private backups in public GitHub issues. Feedback downloads contain only the test answers you enter; share them deliberately.
 
-## Name and compatibility
+## Install
 
-RedBot was previously named Shelf. Existing browser storage keys and the Mac data directory remain stable to preserve saves and notes. Old source repositories redirect here; prior releases remain history. The current public page is /redbot/.
+```sh
+npx skills add m1nga/redbot
+```
 
-## Author and license
+Then ask your AI assistant:
 
-Built by [Ming](https://github.com/m1nga). MIT licensed. This is the clean browser distribution; no personal library, cookies, access tokens or connector credentials are included.
+```text
+Use $redbot with /path/to/my-redbot-backup.json.
+My goal is to make the first task in my app easier to understand.
+Choose one saved source, show the useful passage and give one next action.
+```
+
+The skill bundles a read-only Python standard-library helper. It first returns a bounded shortlist, then the assistant reads selected source material and reasons about the user's need. This helper is lexical; the host assistant supplies reasoning. The web embedding model and the skill are separate access paths to the same backup format, not an automatic synchronization service.
+
+For the running local Mac app only:
+
+```sh
+python3 /path/to/installed/redbot/scripts/read_library.py --live --query "first task"
+```
+
+The Mac's optional existing Xiaohongshu connector is not included in the public beta. Connecting an account is not required to test the public product.
+
+## Example: indirect wording to useful evidence
+
+Input: “The screen feels busy; I need the main action to be obvious.”
+
+A supported result can select the original layout example, point to its observation about competing headings and controls, and suggest changing one section's emphasis before comparing the same viewport. This is illustrative guidance, not evidence of improved conversion or a recruited user's outcome. If only a saved title is available, RedBot asks for reading instead of inventing that observation.
+
+## What is not included yet
+
+- Automatic reading/transcription of every linked post or video.
+- Automatic Xiaohongshu account import in the public beta.
+- Cloud synchronization, shared libraries or production account management.
+- General web search, generative chat, automatic content publishing or paid video generation.
+- Proven usability on every phone, validated market demand, sales or guaranteed search rankings.
+
+Personal research packs can contain web-design, product-design, shared-method and product-promotion guides (SEO, AI-answer visibility, positioning and video workflows). The public example is deliberately small and original; it does not include the developer's personal collection or third-party videos.
+
+## Why
+
+The product started from a concrete failure: organizing a collection still left its owner unsure what to read at the moment of need. RedBot therefore starts with an outcome and reduces the next choice. It keeps source evidence close to the action and leaves unsupported content visibly unread. A mobile browser offers a low-setup test before a separate native app or cloud service is justified.
+
+## Validation
+
+Checks and observed browser scenarios are recorded in [BETA-VALIDATION.md](BETA-VALIDATION.md). Automated checks, builder-operated browser tests, instruction simulations and independent user studies are different evidence. This beta has no recruited-user effectiveness or customer-acquisition proof.
+
+## Search visibility
+
+The public product page contains crawlable descriptions, real setup steps, limitations, authorship, canonical metadata and matching SoftwareApplication data. Its sitemap lists the app and guides. These make the product understandable to people and retrieval systems; they do not prove indexing or AI recommendations. [Google's AI-feature documentation](https://developers.google.com/search/docs/appearance/ai-features) says its ordinary SEO practices still apply without special AI requirements. GitHub controls crawler policy on github.io; this repository cannot override host-level robots policy.
+
+## Author
+
+Built by [Ming](https://github.com/m1nga). Application and original skill source are MIT licensed. Transformers.js and the embedding model retain their own upstream licenses and notices. Third-party saved content belongs to its creators.

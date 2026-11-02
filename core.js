@@ -104,5 +104,24 @@ function chooseStart(items,guides,state,goal,choice=''){
  return {status:readable?'ready':'needs_reading',kind:'save',goal,key,source,reason:readable?'This save contains text or research related to your goal. The saved passage below is the basis for this choice.':'The title is related to your goal, but I have not read the content. I cannot choose a useful part from its title alone.',next:source.research?.decision||'Read the matching passage, then decide whether it supports your next step.',observations:source.research?.points?.slice(0,2)||[],limitations:source.research?.limits||source.coverage||'Only the content already saved in your library was considered.'};
 }
 
-root.ShelfCore={chooseStart,goalTerms,normalizeGoalState,sharedLinks,normalizeGuide,TOPICS,clean,safeURL,imageURL,classify,normalize,extract,mergeItems,score,filterItems,hash};if(typeof module!=='undefined')module.exports=root.ShelfCore;
+function semanticStart(items,guides,state,goal,ranked){
+ const gs=normalizeGoalState(state.goalState),key=hash(goal.toLowerCase()),skip=new Set(gs.skips[key]||[]);
+ const live=items.filter(x=>!state.annotations?.[x.id]?.trashed&&!state.annotations?.[x.id]?.archived);
+ const hits=ranked.filter(h=>h.score>=0.28&&!skip.has(h.id));
+ for(const h of hits){
+  if(h.kind==='guide'){
+   const g=guides.find(g=>g.id===h.id);if(!g)continue;
+   const r=chooseStart(items,guides,state,goal,h.id);
+   if(['ready','needs_reading'].includes(r.status))return {...r,reason:'On-device AI found this saved method semantically related to your goal. Check the evidence below; similarity is not proof of usefulness.',semantic:true};
+  }else{
+   const x=live.find(x=>x.id===h.id);if(!x)continue;
+   const related=guides.find(g=>g.sourceIds.includes(x.id)&&hits.some(t=>t.kind==='guide'&&t.id===g.id&&t.score>=h.score-0.05));if(related){const r=chooseStart(items,guides,state,goal,related.id);if(r.source?.id===x.id&&['ready','needs_reading'].includes(r.status))return {...r,semantic:true,reason:'On-device AI matched your goal to this saved source and its linked method. Review the evidence before acting.'};}
+   const note=state.annotations?.[x.id]?.note||'';const source=note?{...x,readingNotes:[x.readingNotes,note].filter(Boolean).join('\n')}:x;
+   const readable=hasResearch(source)||hasText(source);
+   return {status:readable?'ready':'needs_reading',kind:'save',goal,key,source,reason:readable?'On-device AI matched the meaning of your goal to this saved text. Review the passage before acting.':'AI found a related title, but the content has not been read.',next:source.research?.decision||'Read the saved passage and check whether it supports your next action.',observations:source.research?.points?.slice(0,2)||[],limitations:'Semantic similarity over saved text only. No automatic reading of the original page or video.',semantic:true};
+  }
+ }
+ return {status:'no_match',message:'AI did not find a strong enough match in the saved text. Add a useful note or describe a more concrete goal.'};
+}
+root.ShelfCore={semanticStart,chooseStart,goalTerms,normalizeGoalState,sharedLinks,normalizeGuide,TOPICS,clean,safeURL,imageURL,classify,normalize,extract,mergeItems,score,filterItems,hash};if(typeof module!=='undefined')module.exports=root.ShelfCore;
 })(typeof window!=='undefined'?window:globalThis);
