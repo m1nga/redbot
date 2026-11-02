@@ -27,7 +27,7 @@ Editable topics, optional collections, favorites, read state, archive and recove
 
 ## Verification and limits
 
-13 core tests passed, including goal clarification, source anchors, unread-content boundaries, unsupported requests, discarded sources and scoped feedback. Builder-aware live Chrome checks cover goal → one route → useful source, saving a plan, clarification, no-match and mobile behavior. This is not an unaided nontechnical human trial. The single-file artifact receives static checks; browser file-page behavior remains user-browser dependent.
+16 core tests passed, including goal clarification, source anchors, unread-content boundaries, unsupported requests, discarded sources and scoped feedback. Builder-aware live Chrome checks cover goal → one route → useful source, saving a plan, clarification, no-match and mobile behavior. This is not an unaided nontechnical human trial. The single-file artifact receives static checks; browser file-page behavior remains user-browser dependent.
 
 ## Name and compatibility
 

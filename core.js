@@ -30,7 +30,7 @@ function sharedLinks(text){
  for(const line of lines){const matches=[...line.matchAll(/https?:\/\/[^\s<>"“”]+/gi)];for(const m of matches){const raw=m[0].replace(/[),.;!，。；！）】]+$/u,'');const url=safeURL(raw);if(!url)continue;const n=normalize({url,title:line.replace(m[0],'').replace(/^\s*[-*\d.]+\s*/,'').trim()||new URL(url).hostname});if(!seen.has(n.url)){seen.add(n.url);found.push(n);}}}
  return found.slice(0,500);
 }
-function normalizeGuide(g){if(!g||typeof g!=='object'||!g.id||!g.title)return null;return {id:clean(g.id).slice(0,120),title:clean(g.title),category:clean(g.category),method:clean(g.method),steps:(Array.isArray(g.steps)?g.steps:[]).filter(x=>typeof x==='string').slice(0,12).map(clean),prompt:clean(g.prompt),limit:clean(g.limit),sourceIds:(Array.isArray(g.sourceIds)?g.sourceIds:[]).filter(x=>typeof x==='string').slice(0,30),resources:(Array.isArray(g.resources)?g.resources:[]).map(safeURL).filter(Boolean).slice(0,30)};}
+function normalizeGuide(g){if(!g||typeof g!=='object'||!g.id||!g.title)return null;return {id:clean(g.id).slice(0,120),title:clean(g.title),category:clean(g.category),provenance:clean(g.provenance),method:clean(g.method),steps:(Array.isArray(g.steps)?g.steps:[]).filter(x=>typeof x==='string').slice(0,12).map(clean),prompt:clean(g.prompt),limit:clean(g.limit),sourceIds:(Array.isArray(g.sourceIds)?g.sourceIds:[]).filter(x=>typeof x==='string').slice(0,30),resources:(Array.isArray(g.resources)?g.resources:[]).map(safeURL).filter(Boolean).slice(0,30)};}
 /* Goal routing is evidence-bounded and local. It does not call a model. */
 const INTENTS=[
  {id:'web-polish',label:'Make an existing page feel polished',pattern:/clutter|messy|plastic|cheap|polish|refin|质感|廉价|塑料|杂乱|精修|不好看|高级感/i,reason:'You want to improve an existing page, so start with a focused refinement rather than a new visual direction.',next:'Choose one section. Change its hierarchy, spacing or emphasis, then compare the same section before and after.'},
@@ -46,10 +46,13 @@ const INTENTS=[
  {id:'web-reference',label:'Find a reference for one page region',pattern:/reference site|参考网站|找参考|footer|navigation|页脚|导航/i,reason:'You need a reference for a concrete part of the page. Start with that region rather than browsing an entire inspiration library.',next:'Pick one region and transfer one useful relationship into the existing page.'},
  {id:'shared-diagram',label:'Explain a flow with a diagram',pattern:/diagram|architecture|流程图|架构图|关系图|画清楚/i,reason:'You want to explain relationships or a flow. This guide selects a diagram by the question it needs to answer.',next:'Write the one question the diagram must answer, then verify its labels against the actual system.'},
  {id:'shared-verification',label:'Check whether the product really works',pattern:/verif|test|actually work|验收|验证|测试|能不能用|真的能用/i,reason:'You want evidence that the product works. Start with the actual task and a recovery path.',next:'Run the task with realistic data and record the result and remaining gaps.'},
- {id:'shared-search',label:'Make public content discoverable',pattern:/\bseo\b|\bgeo\b|indexing|search engine|收录|搜索引擎/i,reason:'You named discoverability. Begin with public reachability and indexing evidence before optimizing copy.',next:'Check one public page and its actual indexing signals; keep unverified ranking claims separate.'},
- {id:'video-shotcraft',label:'Plan a product video',pattern:/product video|shot|宣传片|产品视频|镜头|做.*视频|制作.*视频/i,reason:'You want a product video. This route starts with one viewer, one action and a short shot plan.',next:'Choose one real product action and build a short preview before a full render.'},
- {id:'video-source',label:'Adapt an existing video project',pattern:/video source|video code|视频源码|改.*视频|视频代码|复用.*视频/i,reason:'You want to adapt an existing video project. Verify its license, dependencies and assets first.',next:'Replace the content in one shot and build a preview before adapting the whole project.'},
- {id:'video-editable',label:'Make an editable video variation',pattern:/hypit|editable video|视频变体|批量视频|可编辑.*视频/i,reason:'You want editable video variations. Start with one working variation before attempting a batch.',next:'Change one script and product, build it and inspect the result before multiplying versions.'}
+ {id:'shared-search',label:'Help Google find my public page',pattern:/\bseo\b|indexing|search engine|google.*(?:find|search)|收录|搜索引擎|谷歌|Google.*搜|搜.*到/i,reason:'Your goal is discovery through conventional search. Check one intended public page and indexing evidence first.',next:'Choose one public product URL and inspect its actual access, content and indexing signals.'},
+ {id:'promotion-geo',label:'Make my product usable in AI answers',pattern:/\bgeo\b|ai answer|ai.*(?:mention|recommend)|chatgpt|AI.*(?:回答|提到|推荐)|(?:回答|答案).*提到|大模型.*推荐/i,reason:'You want your product represented in AI answers. Start with a specific audience question and verifiable public product facts.',next:'Choose one engine and one real question, record its current answer and cited sources, then inspect the factual gaps.'},
+ {id:'promotion-positioning',label:'Choose who to reach and what to say',pattern:/positioning|content angle|audience|定位|内容角度|受众|向谁|卖点|文案|marketing copy/i,reason:'You need a clear audience and message before choosing a distribution format.',next:'Write one audience, one current problem and one benefit that the product can actually demonstrate.'},
+ {id:'video-shotcraft',label:'Create a short product introduction',pattern:/product video|product demo|介绍视频|介绍.*视频|演示视频|30\s*(?:秒|s|second)|宣传片|产品视频|镜头|做.*视频|制作.*视频/i,reason:'You want a new product video. Start with real product evidence, one viewer and a timed shot plan.',next:'Inventory real screens and write a short shot plan for one demonstrated product action.'},
+ {id:'video-source',label:'Revise an existing promotional video',pattern:/video source|video code|existing.*video|revise.*video|视频源码|改.*(?:视频|宣传片)|修改.*(?:片|视频)|现有宣传片|视频代码|复用.*视频/i,reason:'You already have a video or source project. Identify what is editable and change one concrete shot first.',next:'Provide the existing project or clip and one timestamped change; check assets and rights before reuse.'},
+ {id:'video-editable',label:'Make editable video variations',pattern:/hypit|editable video|视频变体|批量视频|多语言.*视频|可编辑.*视频/i,reason:'You want repeatable script or language variations. Verify one editable result before multiplying it.',next:'Select one script change and one available asset set, then inspect a single variation.'}
+
 ];
 const GOAL_STOP=new Set(['want','need','help','please','how','my','i','to','do','make','improve','use','now','a','the','can','with','is','it','me','and','for','some','this','that','look','better']);
 function goalTerms(goal){
@@ -69,6 +72,12 @@ function chooseStart(items,guides,state,goal,choice=''){
  if(!items.length)return {status:'empty',message:'Add your own saves first. I will choose from the material in your library, not invent a recommendation.'};
  if(!goal)return {status:'clarify',question:'What would you like to get done?',options:[]};
  let matched=INTENTS.filter(i=>i.pattern.test(goal)&&routes.some(g=>g.id===i.id));
+ if(matched.some(i=>i.id==='video-source'))matched=matched.filter(i=>i.id!=='video-shotcraft');
+ if(matched.some(i=>i.id==='video-editable'))matched=matched.filter(i=>!['video-shotcraft','video-source'].includes(i.id));
+ if(!choice&&!matched.some(i=>/^(promotion-|video-)|shared-search/.test(i.id))&&/promot|market my product|launch my product|宣传|推广|获客|营销/i.test(goal)){
+  const options=[['promotion-positioning','Decide who to reach and what to say'],['shared-search','Help people find me on Google'],['promotion-geo','Help AI answers describe my product'],['video-shotcraft','Show the product in a short video']].filter(([id])=>routes.some(g=>g.id===id)).map(([choice,label])=>({choice,label}));
+  if(options.length)return {status:'clarify',question:'What should this promotion help someone do?',options};
+ }
  if(matched.some(i=>i.id==='product-sidecourt'))matched=matched.filter(i=>!['product-continuity','product-states'].includes(i.id));
  // Explicit choice is a response to a visible clarification, not an inferred preference.
  if(choice)matched=INTENTS.filter(i=>i.id===choice&&routes.some(g=>g.id===i.id));
@@ -83,7 +92,7 @@ function chooseStart(items,guides,state,goal,choice=''){
   const intent=matched[0],guide=routes.find(g=>g.id===intent.id);
   const sources=guide.sourceIds.map(id=>liveBy.get(id)).filter(Boolean).sort((a,b)=>Number(hasResearch(b))-Number(hasResearch(a))||Number(!!(b.description||b.transcript))-Number(!!(a.description||a.transcript)));
   const source=sources[0]||null;
-  return {status:source&&!hasResearch(source)&&!hasText(source)?'needs_reading':'ready',kind:'guide',goal,key,guide,source,reason:intent.reason,next:intent.next,observations:source?.research?.points?.slice(0,2)||[],external:!source,limitations:source?.research?.limits||guide.limit};
+  return {status:source&&!hasResearch(source)&&!hasText(source)?'needs_reading':'ready',kind:'guide',goal,key,guide,source,reason:intent.reason,next:intent.next,observations:(intent.id==='shared-search'?source?.research?.points?.filter((_,i)=>[0,2,3].includes(i)):source?.research?.points?.slice(intent.id==='promotion-positioning'?5:0,intent.id==='promotion-positioning'?7:2))||[],external:!source,limitations:source?.research?.limits||guide.limit};
  }
  if(skips.size&&INTENTS.some(i=>i.pattern.test(goal)))return {status:'no_match',message:'That prepared route was not a fit. I do not have another reviewed route for this goal yet. Describe what was wrong or add the missing constraint.'};
  const terms=goalTerms(goal);let candidates=live.filter(x=>!skips.has(x.id)).map(x=>{
